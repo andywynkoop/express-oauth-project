@@ -1,10 +1,28 @@
-var express = require('express');
-var app = express();
+const express = require('express');
+const mongoose = require('mongoose');
+const cookieSession = require('cookie-session');
+const passport = require('passport');
+const keys = require('./config/keys');
+require('./models/User');
+require('./services/passport');
 
-app.get('/', (req, res) => {
-  res.send({ hello: 'there' });
-});
-var PORT = process.env.port || 3000;
+mongoose.connect(keys.mongoURI);
+
+const app = express();
+
+app.use(
+  cookieSession({
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    keys: [keys.cookieKey]
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+require('./routes/authRoutes')(app);
+
+const PORT = process.env.port || 3000;
 app.listen(PORT, () => {
   console.log(`I'm listening on ${PORT}!`);
 });
